@@ -1,0 +1,2185 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#1a1a2e">
+    <title>🚛 Логистическая система АПК</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        :root {
+            --bg-primary: #1a1a2e;
+            --bg-secondary: #16213e;
+            --bg-card: #0f3460;
+            --accent: #00d4ff;
+            --accent-hover: #00a8cc;
+            --text-primary: #e0e0e0;
+            --text-secondary: #8888aa;
+            --success: #6bff6b;
+            --warning: #ffd93d;
+            --danger: #ff6b6b;
+            --spoiled: #FF5722;
+            --purple: #CE93D8;
+            --border: #333355;
+        }
+
+        html {
+            font-size: 16px;
+            -webkit-text-size-adjust: 100%;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background-color: var(--bg-primary);
+            color: var(--text-primary);
+            overflow-x: hidden;
+            min-height: 100vh;
+        }
+
+        /* Header */
+        .header {
+            background: linear-gradient(135deg, var(--bg-secondary) 0%, var(--bg-card) 100%);
+            padding: 1rem;
+            border-bottom: 2px solid var(--accent);
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 0.75rem;
+        }
+
+        .header h1 {
+            color: var(--accent);
+            font-size: 1.1rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            flex: 1;
+            min-width: 200px;
+        }
+
+        .header-controls {
+            display: flex;
+            gap: 0.75rem;
+            flex-wrap: wrap;
+        }
+
+        .day-indicator {
+            background: rgba(156, 39, 176, 0.15);
+            border: 2px solid #9C27B0;
+            border-radius: 8px;
+            padding: 0.5rem 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            color: var(--purple);
+            font-size: 0.95rem;
+            font-weight: bold;
+        }
+
+        .day-indicator .day-value {
+            font-size: 1.3rem;
+            color: var(--accent);
+        }
+
+        .auto-timer {
+            background: rgba(0, 212, 255, 0.08);
+            border: 1px dashed rgba(0, 212, 255, 0.4);
+            border-radius: 6px;
+            padding: 0.4rem 0.8rem;
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+        }
+
+        .auto-timer .timer-value {
+            color: var(--accent);
+            font-weight: bold;
+        }
+
+        /* Navigation */
+        .nav-tabs {
+            display: flex;
+            background-color: var(--bg-secondary);
+            border-bottom: 1px solid var(--border);
+            padding: 0 0.5rem;
+            gap: 0.25rem;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+            scrollbar-width: none;
+        }
+
+        .nav-tabs::-webkit-scrollbar {
+            display: none;
+        }
+
+        .nav-tab {
+            padding: 0.9rem 1.2rem;
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            cursor: pointer;
+            font-size: 0.9rem;
+            font-weight: 600;
+            transition: all 0.3s;
+            border-bottom: 3px solid transparent;
+            white-space: nowrap;
+            flex-shrink: 0;
+        }
+
+        .nav-tab:hover {
+            color: var(--text-primary);
+            background-color: rgba(0, 212, 255, 0.1);
+        }
+
+        .nav-tab.active {
+            color: var(--accent);
+            border-bottom-color: var(--accent);
+        }
+
+        /* Container */
+        .container {
+            padding: 1rem;
+            max-width: 1600px;
+            margin: 0 auto;
+        }
+
+        .tab-content { display: none; }
+        .tab-content.active { display: block; animation: fadeIn 0.3s; }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Grids */
+        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
+        .grid-4 { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 0.75rem; }
+
+        /* Cards */
+        .card {
+            background-color: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 1.25rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+            margin-bottom: 1.5rem;
+        }
+
+        .card h3 {
+            color: var(--accent);
+            margin-bottom: 1rem;
+            font-size: 1rem;
+            border-bottom: 1px solid var(--border);
+            padding-bottom: 0.5rem;
+        }
+
+        /* Metric Cards */
+        .metric-card {
+            background: linear-gradient(135deg, var(--bg-card) 0%, var(--bg-secondary) 100%);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 1rem;
+            text-align: center;
+            transition: transform 0.3s, box-shadow 0.3s;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .metric-card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 3px;
+            background: var(--accent);
+            transform: scaleX(0);
+            transition: transform 0.3s;
+        }
+
+        .metric-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 16px rgba(0, 212, 255, 0.2);
+        }
+
+        .metric-card:hover::before { transform: scaleX(1); }
+
+        .metric-icon { font-size: 2rem; margin-bottom: 0.3rem; }
+        .metric-value { font-size: 1.5rem; font-weight: bold; color: var(--accent); margin: 0.3rem 0; }
+        .metric-label { color: var(--text-secondary); font-size: 0.8rem; }
+
+        /* Map */
+        .map-container {
+            position: relative;
+            border-radius: 10px;
+            border: 2px solid var(--border);
+            overflow: hidden;
+            background: linear-gradient(180deg, #0a0f1e 0%, #141e37 50%, #1e2d4b 100%);
+        }
+
+        #custom-map {
+            width: 100%;
+            height: 500px;
+            display: block;
+        }
+
+        /* Tables */
+        .table-container {
+            overflow-x: auto;
+            background-color: var(--bg-secondary);
+            border-radius: 10px;
+            border: 1px solid var(--border);
+            -webkit-overflow-scrolling: touch;
+        }
+
+        table { width: 100%; border-collapse: collapse; min-width: 600px; }
+        th, td { padding: 0.6rem 0.8rem; text-align: left; border-bottom: 1px solid var(--border); font-size: 0.85rem; }
+
+        th {
+            background-color: var(--bg-card);
+            color: var(--accent);
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: 0.75rem;
+            letter-spacing: 0.5px;
+            position: sticky;
+            top: 0;
+        }
+
+        tr:hover { background-color: rgba(0, 212, 255, 0.05); }
+        tr.selected { background-color: rgba(0, 212, 255, 0.15); border-left: 3px solid var(--accent); }
+
+        /* Forms */
+        .form-group { margin-bottom: 1rem; }
+        label { display: block; margin-bottom: 0.4rem; color: var(--text-secondary); font-size: 0.85rem; }
+
+        input, select {
+            width: 100%;
+            padding: 0.7rem;
+            background-color: var(--bg-primary);
+            border: 1px solid var(--border);
+            border-radius: 5px;
+            color: var(--text-primary);
+            font-size: 0.95rem;
+            transition: border-color 0.3s;
+        }
+
+        input:focus, select:focus { outline: none; border-color: var(--accent); }
+
+        /* Buttons */
+        .btn {
+            padding: 0.7rem 1.2rem;
+            border: none;
+            border-radius: 5px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.4rem;
+            min-height: 44px;
+            touch-action: manipulation;
+        }
+
+        .btn-primary { background-color: var(--accent); color: var(--bg-primary); }
+        .btn-primary:hover { background-color: var(--accent-hover); transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0, 212, 255, 0.4); }
+        .btn-success { background-color: var(--success); color: var(--bg-primary); }
+        .btn-warning { background-color: var(--warning); color: var(--bg-primary); }
+        .btn-danger { background-color: var(--danger); color: white; }
+
+        .btn-block { width: 100%; }
+
+        /* Badges */
+        .badge { padding: 0.2rem 0.6rem; border-radius: 20px; font-size: 0.75rem; font-weight: 600; display: inline-block; }
+        .badge-success { background-color: rgba(107, 255, 107, 0.2); color: var(--success); border: 1px solid var(--success); }
+        .badge-warning { background-color: rgba(255, 217, 61, 0.2); color: var(--warning); border: 1px solid var(--warning); }
+        .badge-danger { background-color: rgba(255, 107, 107, 0.2); color: var(--danger); border: 1px solid var(--danger); }
+        .badge-info { background-color: rgba(0, 212, 255, 0.2); color: var(--accent); border: 1px solid var(--accent); }
+        .badge-spoiled { background-color: rgba(255, 87, 34, 0.2); color: var(--spoiled); border: 1px solid var(--spoiled); }
+
+        /* Log Console */
+        .log-console {
+            background-color: var(--bg-primary);
+            border: 1px solid var(--border);
+            border-radius: 5px;
+            padding: 0.8rem;
+            font-family: 'Courier New', monospace;
+            font-size: 0.8rem;
+            height: 250px;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .log-entry { margin: 0.2rem 0; padding: 0.2rem 0; word-wrap: break-word; }
+        .log-time { color: var(--accent); }
+        .log-success { color: var(--success); }
+        .log-error { color: var(--danger); }
+        .log-info { color: var(--text-secondary); }
+        .log-spoiled { color: var(--spoiled); font-weight: bold; }
+        .log-day { color: var(--purple); font-weight: bold; }
+
+        /* Split View */
+        .split-view { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
+
+        /* Efficiency Summary */
+        .efficiency-summary {
+            background: linear-gradient(135deg, var(--bg-card) 0%, var(--bg-secondary) 100%);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 0.8rem 1rem;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+            flex-wrap: wrap;
+        }
+
+        .summary-item { display: flex; flex-direction: column; gap: 0.2rem; }
+        .summary-label { font-size: 0.75rem; color: var(--text-secondary); }
+        .summary-value { font-size: 1.1rem; font-weight: bold; color: var(--accent); }
+
+        /* Recommendation Panel */
+        .recommendation-panel {
+            background-color: var(--bg-primary);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 1rem;
+            margin-top: 1rem;
+            max-height: 400px;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .recommendation-panel h4 { color: var(--accent); margin-bottom: 0.8rem; font-size: 1rem; }
+
+        .recommendation-card {
+            background: rgba(0, 212, 255, 0.05);
+            border-left: 3px solid var(--accent);
+            padding: 0.8rem;
+            margin-bottom: 0.8rem;
+            border-radius: 5px;
+        }
+
+        .recommendation-card.warehouse { background: rgba(107, 255, 107, 0.1); border-left-color: var(--success); }
+        .recommendation-card.route { background: rgba(255, 217, 61, 0.1); border-left-color: var(--warning); }
+        .recommendation-card.vehicle { background: rgba(0, 212, 255, 0.1); border-left-color: var(--accent); }
+        .recommendation-card.savings { background: rgba(156, 39, 176, 0.15); border-left-color: #CE93D8; }
+        .recommendation-card.spoiled { background: rgba(255, 87, 34, 0.15); border-left-color: var(--spoiled); }
+
+        .recommendation-card h5 { margin-bottom: 0.4rem; font-size: 0.9rem; }
+        .recommendation-card.warehouse h5 { color: var(--success); }
+        .recommendation-card.route h5 { color: var(--warning); }
+        .recommendation-card.vehicle h5 { color: var(--accent); }
+        .recommendation-card.savings h5 { color: #CE93D8; }
+        .recommendation-card.spoiled h5 { color: var(--spoiled); }
+
+        .problem-list { list-style: none; padding: 0; margin: 0.4rem 0; }
+        .problem-list li { padding: 0.2rem 0; color: var(--danger); font-size: 0.85rem; }
+        .problem-list li::before { content: "⚠️ "; }
+
+        .score-badge { display: inline-block; padding: 0.4rem 0.8rem; border-radius: 5px; font-weight: bold; font-size: 1rem; }
+        .score-high { background-color: rgba(107, 255, 107, 0.2); color: var(--success); }
+        .score-medium { background-color: rgba(255, 217, 61, 0.2); color: var(--warning); }
+        .score-low { background-color: rgba(255, 107, 107, 0.2); color: var(--danger); }
+        .score-spoiled { background-color: rgba(255, 87, 34, 0.2); color: var(--spoiled); }
+
+        .info-box {
+            color: var(--text-secondary);
+            font-style: italic;
+            padding: 0.8rem;
+            background-color: rgba(0, 212, 255, 0.05);
+            border-radius: 5px;
+            border: 1px dashed rgba(0, 212, 255, 0.3);
+            margin-bottom: 1rem;
+            font-size: 0.85rem;
+        }
+
+        /* Warehouse Products Widget */
+        .warehouse-products-header {
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+            margin-bottom: 0.8rem;
+            flex-wrap: wrap;
+        }
+
+        .warehouse-products-header label {
+            color: var(--accent);
+            font-weight: bold;
+            font-size: 0.9rem;
+            margin: 0;
+        }
+
+        .warehouse-products-header select {
+            flex: 1;
+            min-width: 200px;
+        }
+
+        .warehouse-summary {
+            color: var(--text-secondary);
+            font-size: 0.8rem;
+            margin-top: 0.5rem;
+        }
+
+        /* Mobile Optimizations */
+        @media (max-width: 1024px) {
+            .grid-2, .split-view { grid-template-columns: 1fr; }
+            .grid-4 { grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); }
+        }
+
+        @media (max-width: 768px) {
+            html { font-size: 15px; }
+
+            .header {
+                padding: 0.8rem;
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .header h1 {
+                font-size: 1rem;
+                text-align: center;
+            }
+
+            .header-controls {
+                justify-content: center;
+            }
+
+            .day-indicator, .auto-timer {
+                font-size: 0.85rem;
+                padding: 0.4rem 0.8rem;
+            }
+
+            .day-indicator .day-value {
+                font-size: 1.1rem;
+            }
+
+            .container {
+                padding: 0.8rem;
+            }
+
+            .card {
+                padding: 1rem;
+                margin-bottom: 1rem;
+            }
+
+            .card h3 {
+                font-size: 0.95rem;
+            }
+
+            .grid-4 {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 0.6rem;
+            }
+
+            .metric-card {
+                padding: 0.8rem;
+            }
+
+            .metric-icon {
+                font-size: 1.5rem;
+            }
+
+            .metric-value {
+                font-size: 1.2rem;
+            }
+
+            .metric-label {
+                font-size: 0.7rem;
+            }
+
+            #custom-map {
+                height: 400px;
+            }
+
+            .nav-tab {
+                padding: 0.8rem 1rem;
+                font-size: 0.85rem;
+            }
+
+            .btn {
+                padding: 0.6rem 1rem;
+                font-size: 0.85rem;
+            }
+
+            .efficiency-summary {
+                gap: 1rem;
+                padding: 0.6rem 0.8rem;
+            }
+
+            .summary-value {
+                font-size: 1rem;
+            }
+
+            table {
+                min-width: 500px;
+            }
+
+            th, td {
+                padding: 0.5rem 0.6rem;
+                font-size: 0.8rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            html { font-size: 14px; }
+
+            .header {
+                padding: 0.6rem;
+            }
+
+            .header h1 {
+                font-size: 0.9rem;
+            }
+
+            .header-controls {
+                flex-direction: column;
+                gap: 0.5rem;
+            }
+
+            .day-indicator, .auto-timer {
+                width: 100%;
+                justify-content: center;
+            }
+
+            .container {
+                padding: 0.6rem;
+            }
+
+            .card {
+                padding: 0.8rem;
+                border-radius: 8px;
+            }
+
+            .grid-4 {
+                grid-template-columns: 1fr 1fr;
+                gap: 0.5rem;
+            }
+
+            .metric-card {
+                padding: 0.6rem;
+            }
+
+            .metric-icon {
+                font-size: 1.3rem;
+            }
+
+            .metric-value {
+                font-size: 1.1rem;
+            }
+
+            #custom-map {
+                height: 350px;
+            }
+
+            .nav-tabs {
+                padding: 0 0.3rem;
+            }
+
+            .nav-tab {
+                padding: 0.7rem 0.8rem;
+                font-size: 0.8rem;
+            }
+
+            .btn {
+                padding: 0.5rem 0.8rem;
+                font-size: 0.8rem;
+                min-height: 40px;
+            }
+
+            table {
+                min-width: 450px;
+                font-size: 0.75rem;
+            }
+
+            th, td {
+                padding: 0.4rem 0.5rem;
+            }
+
+            .warehouse-products-header {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .warehouse-products-header select {
+                min-width: auto;
+            }
+        }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: var(--bg-primary); }
+        ::-webkit-scrollbar-thumb { background: var(--bg-card); border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: var(--accent); }
+
+        /* Touch improvements */
+        @media (hover: none) and (pointer: coarse) {
+            .btn:hover {
+                transform: none;
+            }
+
+            .metric-card:hover {
+                transform: none;
+            }
+
+            tr:hover {
+                background-color: transparent;
+            }
+
+            tr:active {
+                background-color: rgba(0, 212, 255, 0.1);
+            }
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <h1>🚛 ЛОГИСТИЧЕСКАЯ СИСТЕМА АПК</h1>
+        <div class="header-controls">
+            <div class="day-indicator">
+                <span>📅 День:</span>
+                <span class="day-value" id="current-day">0</span>
+            </div>
+            <div class="auto-timer">
+                ⏱️ Следующий день: <span class="timer-value" id="next-day-timer">90</span> сек
+            </div>
+        </div>
+    </header>
+
+    <nav class="nav-tabs">
+        <button class="nav-tab active" onclick="switchTab('map')">📍 Карта</button>
+        <button class="nav-tab" onclick="switchTab('manage')">⚙️ Управление</button>
+        <button class="nav-tab" onclick="switchTab('deliveries')">📋 Доставки</button>
+        <button class="nav-tab" onclick="switchTab('analytics')">📈 Аналитика</button>
+    </nav>
+
+    <div class="container">
+        <!-- Map Tab -->
+        <div id="map-tab" class="tab-content active">
+            <div class="grid-2">
+                <div>
+                    <div class="map-container">
+                        <canvas id="custom-map"></canvas>
+                    </div>
+                </div>
+                <div>
+                    <div class="grid-4" id="metrics-grid"></div>
+                    
+                    <div class="card">
+                        <h3>⚡ Быстрые действия</h3>
+                        <div class="info-box">
+                            💡 Дни меняются автоматически каждые 1.5 минуты. Продукты портятся по истечении срока годности.
+                        </div>
+                        <div style="display: flex; gap: 0.8rem; flex-wrap: wrap;">
+                            <button class="btn btn-success" onclick="simulateAll()">⏩ Завершить все</button>
+                            <button class="btn btn-warning" onclick="refreshAll()">🔄 Обновить</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Manage Tab -->
+        <div id="manage-tab" class="tab-content">
+            <div class="split-view">
+                <div>
+                    <div class="card">
+                        <h3>📦 Создать доставку</h3>
+                        <form id="delivery-form" onsubmit="createDelivery(event)">
+                            <div class="form-group">
+                                <label>Откуда</label>
+                                <select id="from-warehouse" required></select>
+                            </div>
+                            <div class="form-group">
+                                <label>Куда</label>
+                                <select id="to-warehouse" required></select>
+                            </div>
+                            <div class="form-group">
+                                <label>Товар</label>
+                                <select id="product-type" required></select>
+                            </div>
+                            <div class="form-group">
+                                <label>Транспорт</label>
+                                <select id="vehicle-type" required>
+                                    <option value="TRUCK">Фура</option>
+                                    <option value="GAZELLE">Газель</option>
+                                    <option value="CAR">Легковой</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>Количество</label>
+                                <input type="number" id="quantity" min="1" max="10000" value="100" required>
+                            </div>
+                            <button type="submit" class="btn btn-primary btn-block">🚀 Создать доставку</button>
+                        </form>
+                    </div>
+
+                    <div class="card">
+                        <h3>📋 Товары на складе</h3>
+                        <div class="warehouse-products-header">
+                            <label>Склад:</label>
+                            <select id="products-warehouse" onchange="updateProductsTable()"></select>
+                        </div>
+                        <div class="table-container">
+                            <table id="products-table">
+                                <thead>
+                                    <tr>
+                                        <th>Товар</th>
+                                        <th>Кол-во</th>
+                                        <th>Вес 1 ед.</th>
+                                        <th>Общий вес</th>
+                                        <th>Срок</th>
+                                        <th>Осталось</th>
+                                    </tr>
+                                </thead>
+                                <tbody></tbody>
+                            </table>
+                        </div>
+                        <div class="warehouse-summary" id="warehouse-summary"></div>
+                    </div>
+
+                    <div class="card">
+                        <h3>🏭 Добавить склад</h3>
+                        <form id="warehouse-form" onsubmit="addWarehouse(event)">
+                            <div class="form-group">
+                                <label>Название</label>
+                                <input type="text" id="wh-name" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Город</label>
+                                <select id="wh-city" required></select>
+                            </div>
+                            <div class="form-group">
+                                <label>Вместимость (кг)</label>
+                                <input type="number" id="wh-capacity" min="1000" max="200000" value="20000" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Мин. температура (°C)</label>
+                                <input type="number" id="wh-temp-min" min="-30" max="30" value="0" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Макс. температура (°C)</label>
+                                <input type="number" id="wh-temp-max" min="-10" max="50" value="25" required>
+                            </div>
+                            <button type="submit" class="btn btn-primary btn-block">➕ Добавить склад</button>
+                        </form>
+                    </div>
+
+                    <div class="card">
+                        <h3>🚛 Добавить транспорт</h3>
+                        <form id="vehicle-form" onsubmit="addVehicle(event)">
+                            <div class="form-group">
+                                <label>Тип транспорта</label>
+                                <select id="veh-type" required>
+                                    <option value="TRUCK">Фура</option>
+                                    <option value="GAZELLE">Газель</option>
+                                    <option value="CAR">Легковой</option>
+                                </select>
+                            </div>
+                            <button type="submit" class="btn btn-primary btn-block">➕ Добавить транспорт</button>
+                        </form>
+                    </div>
+                </div>
+
+                <div>
+                    <div class="card">
+                        <h3>🏭 Склады</h3>
+                        <div class="table-container">
+                            <table id="warehouses-table">
+                                <thead>
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>Название</th>
+                                        <th>Город</th>
+                                        <th>Загрузка</th>
+                                        <th>Товаров</th>
+                                        <th>Испорчено</th>
+                                    </tr>
+                                </thead>
+                                <tbody></tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <h3>🚛 Транспорт</h3>
+                        <div class="table-container">
+                            <table id="vehicles-table">
+                                <thead>
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>Тип</th>
+                                        <th>Грузоподъёмность</th>
+                                        <th>Загрузка</th>
+                                        <th>Статус</th>
+                                    </tr>
+                                </thead>
+                                <tbody></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Deliveries Tab -->
+        <div id="deliveries-tab" class="tab-content">
+            <div class="card">
+                <h3>🚚 Активные доставки</h3>
+                <div class="table-container">
+                    <table id="active-deliveries-table">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Маршрут</th>
+                                <th>Товар</th>
+                                <th>Кол-во</th>
+                                <th>Транспорт</th>
+                                <th>Расстояние</th>
+                                <th>Дней в пути</th>
+                                <th>Срок годности</th>
+                                <th>День отправки</th>
+                                <th>Статус</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="card">
+                <h3>📋 История доставок</h3>
+                <div class="table-container">
+                    <table id="history-deliveries-table">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Маршрут</th>
+                                <th>Товар</th>
+                                <th>Кол-во</th>
+                                <th>Расстояние</th>
+                                <th>Топливо (₽)</th>
+                                <th>Дней в пути</th>
+                                <th>День отправки</th>
+                                <th>Срок годности</th>
+                                <th>Статус</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Analytics Tab -->
+        <div id="analytics-tab" class="tab-content">
+            <div class="card">
+                <h3>📊 Анализ размещения складов</h3>
+                <button class="btn btn-primary" onclick="analyzeWarehouses()" style="margin-bottom: 1rem;">
+                    🔍 Провести анализ
+                </button>
+                <div class="table-container">
+                    <table id="analysis-table">
+                        <thead>
+                            <tr>
+                                <th>Город</th>
+                                <th>Есть склад</th>
+                                <th>Ближайший склад</th>
+                                <th>Расстояние (км)</th>
+                                <th>Рекомендация</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="card">
+                <h3>🎯 Анализ эффективности маршрутов</h3>
+                <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem; flex-wrap: wrap;">
+                    <button class="btn btn-primary" onclick="analyzeRouteEfficiency()">
+                        🔬 Анализировать
+                    </button>
+                    <div id="eff-summary" class="efficiency-summary" style="display: none; flex: 1;">
+                        <div class="summary-item">
+                            <span class="summary-label">Проанализировано</span>
+                            <span class="summary-value" id="summary-analyzed">0</span>
+                        </div>
+                        <div class="summary-item">
+                            <span class="summary-label">Средняя</span>
+                            <span class="summary-value" id="summary-avg">0/100</span>
+                        </div>
+                        <div class="summary-item">
+                            <span class="summary-label">Критических</span>
+                            <span class="summary-value" id="summary-critical" style="color: var(--danger);">0</span>
+                        </div>
+                        <div class="summary-item">
+                            <span class="summary-label">Испорчено</span>
+                            <span class="summary-value" id="summary-spoiled" style="color: var(--spoiled);">0</span>
+                        </div>
+                        <div class="summary-item">
+                            <span class="summary-label">Экономия</span>
+                            <span class="summary-value" id="summary-savings" style="color: #CE93D8;">0 ₽</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="table-container">
+                    <table id="efficiency-table">
+                        <thead>
+                            <tr>
+                                <th>Доставка</th>
+                                <th>Маршрут</th>
+                                <th>Товар / Транспорт</th>
+                                <th>Расстояние</th>
+                                <th>Эффективность</th>
+                                <th>Проблемы</th>
+                                <th>Срок годности</th>
+                                <th>Вердикт</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+
+                <div id="recommendation-panel" class="recommendation-panel" style="display: none;">
+                    <h4>🔍 Детальный анализ</h4>
+                    <div id="recommendation-content"></div>
+                </div>
+            </div>
+
+            <div class="card">
+                <h3>📝 Журнал событий</h3>
+                <div class="log-console" id="log-console"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Constants
+        const RUSSIA_BOUNDS = { minLat: 41.0, maxLat: 70.0, minLon: 27.0, maxLon: 180.0 };
+        const DAY_INTERVAL_MS = 90000;
+
+        const CITIES = {
+            "Москва": [55.75, 37.62], "Санкт-Петербург": [59.93, 30.32],
+            "Казань": [55.79, 49.11], "Нижний Новгород": [56.30, 44.00],
+            "Самара": [53.20, 50.15], "Екатеринбург": [56.84, 60.60],
+            "Новосибирск": [55.03, 82.92], "Краснодар": [45.04, 38.98],
+            "Ростов-на-Дону": [47.24, 39.71], "Воронеж": [51.66, 39.20],
+            "Волгоград": [48.71, 44.50], "Челябинск": [55.16, 61.40],
+            "Омск": [54.99, 73.37], "Уфа": [54.74, 55.97],
+            "Пермь": [58.01, 56.25], "Саратов": [51.54, 46.03],
+            "Тюмень": [57.15, 65.53], "Томск": [56.50, 84.97],
+            "Ставрополь": [45.04, 41.97], "Сочи": [43.60, 39.73],
+        };
+
+        const RUSSIA_OUTLINE = [
+            [70.0, 30.0], [70.0, 60.0], [72.0, 90.0], [73.0, 120.0],
+            [71.0, 150.0], [68.0, 170.0], [65.0, 180.0],
+            [55.0, 180.0], [50.0, 160.0], [45.0, 140.0],
+            [43.0, 132.0], [48.0, 120.0], [50.0, 100.0],
+            [50.0, 85.0], [45.0, 75.0], [43.0, 60.0],
+            [45.0, 45.0], [48.0, 40.0], [50.0, 35.0],
+            [55.0, 30.0], [60.0, 28.0], [65.0, 30.0], [70.0, 30.0]
+        ];
+
+        const ROADS = [
+            ["Москва", "Санкт-Петербург", 700, 0.9],
+            ["Москва", "Казань", 800, 0.85],
+            ["Москва", "Нижний Новгород", 420, 0.9],
+            ["Москва", "Воронеж", 520, 0.85],
+            ["Москва", "Ростов-на-Дону", 1080, 0.8],
+            ["Санкт-Петербург", "Пермь", 1300, 0.7],
+            ["Казань", "Нижний Новгород", 400, 0.8],
+            ["Казань", "Самара", 350, 0.85],
+            ["Казань", "Уфа", 500, 0.8],
+            ["Казань", "Екатеринбург", 900, 0.75],
+            ["Нижний Новгород", "Самара", 550, 0.8],
+            ["Самара", "Саратов", 440, 0.8],
+            ["Самара", "Волгоград", 600, 0.75],
+            ["Екатеринбург", "Челябинск", 200, 0.9],
+            ["Екатеринбург", "Пермь", 360, 0.85],
+            ["Екатеринбург", "Тюмень", 330, 0.85],
+            ["Челябинск", "Уфа", 400, 0.8],
+            ["Ростов-на-Дону", "Краснодар", 270, 0.85],
+            ["Ростов-на-Дону", "Волгоград", 470, 0.8],
+            ["Краснодар", "Сочи", 300, 0.8],
+            ["Краснодар", "Ставрополь", 180, 0.85],
+            ["Воронеж", "Ростов-на-Дону", 550, 0.8],
+            ["Воронеж", "Саратов", 530, 0.75],
+            ["Волгоград", "Саратов", 380, 0.8],
+            ["Пермь", "Уфа", 450, 0.8],
+            ["Тюмень", "Омск", 550, 0.75],
+            ["Омск", "Новосибирск", 650, 0.8],
+            ["Новосибирск", "Томск", 250, 0.85],
+            ["Москва", "Самара", 1050, 0.8],
+            ["Москва", "Волгоград", 970, 0.75],
+        ];
+
+        const PRODUCTS = {
+            "MILK": { name: "Молоко", shelfLife: 7, weight: 1.0, volume: 0.001, price: 65 },
+            "EGGS": { name: "Яйца", shelfLife: 25, weight: 0.06, volume: 0.00007, price: 90 },
+            "CUCUMBERS": { name: "Огурцы", shelfLife: 15, weight: 0.1, volume: 0.0003, price: 120 },
+            "APRICOTS": { name: "Абрикосы", shelfLife: 10, weight: 0.05, volume: 0.0001, price: 200 },
+            "TOMATOES": { name: "Помидоры", shelfLife: 14, weight: 0.15, volume: 0.0003, price: 150 },
+            "APPLES": { name: "Яблоки", shelfLife: 30, weight: 0.2, volume: 0.0004, price: 80 }
+        };
+
+        const VEHICLES = {
+            "TRUCK": { name: "Фура", capacity: 20000, fuelConsumption: 35, speed: 70 },
+            "GAZELLE": { name: "Газель", capacity: 1500, fuelConsumption: 15, speed: 80 },
+            "CAR": { name: "Легковой", capacity: 300, fuelConsumption: 8, speed: 90 }
+        };
+
+        // State
+        let warehouses = {};
+        let vehicles = {};
+        let deliveries = [];
+        let deliveryHistory = [];
+        let idCounter = 0;
+        let efficiencyResults = [];
+        let currentDay = 0;
+        let nextDayCountdown = DAY_INTERVAL_MS / 1000;
+        let mapCanvas, mapCtx;
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            initSystem();
+            initMap();
+            updateUI();
+            startTimers();
+            log(`🎉 Система инициализирована. День ${currentDay}.`, "success");
+        });
+
+        function initSystem() {
+            const defaultWarehouses = [
+                ["WH-0001", "Центральный", "Москва", 50000, 0, 25],
+                ["WH-0002", "Северный", "Санкт-Петербург", 30000, 0, 20],
+                ["WH-0003", "Южный", "Краснодар", 40000, 2, 30],
+                ["WH-0004", "Поволжский", "Казань", 25000, 0, 25],
+                ["WH-0005", "Уральский", "Екатеринбург", 35000, 0, 22],
+                ["WH-0006", "Сибирский", "Новосибирск", 30000, -5, 20],
+            ];
+
+            defaultWarehouses.forEach(([id, name, city, capacity, tempMin, tempMax]) => {
+                warehouses[id] = {
+                    id, name, city, capacity, tempMin, tempMax,
+                    currentLoad: 0, products: {}, totalReceived: 0, totalShipped: 0, totalSpoiled: 0
+                };
+                Object.keys(PRODUCTS).forEach((type, idx) => {
+                    const qty = [500, 1000, 300, 200, 400, 600][idx];
+                    const productId = `PR-${type}-${id.slice(-3)}`;
+                    warehouses[id].products[productId] = {
+                        type, quantity: qty,
+                        weight: PRODUCTS[type].weight * qty,
+                        volume: PRODUCTS[type].volume * qty,
+                        productionDay: 0
+                    };
+                    warehouses[id].currentLoad += PRODUCTS[type].weight * qty;
+                });
+            });
+
+            const defaultVehicles = [
+                ["TR-0001", "TRUCK"], ["TR-0002", "TRUCK"], ["TR-0003", "TRUCK"],
+                ["GZ-0001", "GAZELLE"], ["GZ-0002", "GAZELLE"], ["GZ-0003", "GAZELLE"],
+                ["CR-0001", "CAR"], ["CR-0002", "CAR"],
+            ];
+
+            defaultVehicles.forEach(([id, type]) => {
+                vehicles[id] = {
+                    id, type, ...VEHICLES[type],
+                    currentLoad: 0, isAvailable: true,
+                    totalDistance: 0, totalFuel: 0, deliveriesCompleted: 0
+                };
+            });
+
+            populateSelects();
+        }
+
+        // Map
+        function initMap() {
+            mapCanvas = document.getElementById('custom-map');
+            mapCtx = mapCanvas.getContext('2d');
+            resizeCanvas();
+            window.addEventListener('resize', () => {
+                resizeCanvas();
+                drawMap();
+            });
+            drawMap();
+        }
+
+        function resizeCanvas() {
+            const container = mapCanvas.parentElement;
+            mapCanvas.width = container.clientWidth;
+            mapCanvas.height = window.innerWidth <= 480 ? 350 : window.innerWidth <= 768 ? 400 : 500;
+        }
+
+        function toScreen(lat, lon) {
+            const w = mapCanvas.width;
+            const h = mapCanvas.height;
+            const margin = window.innerWidth <= 768 ? 30 : 60;
+            const xNorm = (lon - RUSSIA_BOUNDS.minLon) / (RUSSIA_BOUNDS.maxLon - RUSSIA_BOUNDS.minLon);
+            const yNorm = 1.0 - (lat - RUSSIA_BOUNDS.minLat) / (RUSSIA_BOUNDS.maxLat - RUSSIA_BOUNDS.minLat);
+            return {
+                x: margin + xNorm * (w - 2 * margin),
+                y: margin + yNorm * (h - 2 * margin)
+            };
+        }
+
+        function drawMap() {
+            const w = mapCanvas.width;
+            const h = mapCanvas.height;
+
+            const gradient = mapCtx.createLinearGradient(0, 0, 0, h);
+            gradient.addColorStop(0, '#0a0f1e');
+            gradient.addColorStop(0.5, '#141e37');
+            gradient.addColorStop(1, '#1e2d4b');
+            mapCtx.fillStyle = gradient;
+            mapCtx.fillRect(0, 0, w, h);
+
+            // Grid
+            mapCtx.strokeStyle = 'rgba(50, 70, 100, 0.3)';
+            mapCtx.lineWidth = 0.5;
+            mapCtx.setLineDash([3, 5]);
+            mapCtx.fillStyle = 'rgba(100, 120, 150, 0.7)';
+            mapCtx.font = window.innerWidth <= 768 ? '8px Arial' : '10px Arial';
+
+            for (let lat = 45; lat <= 70; lat += 5) {
+                const p = toScreen(lat, RUSSIA_BOUNDS.minLon);
+                mapCtx.beginPath();
+                mapCtx.moveTo(0, p.y);
+                mapCtx.lineTo(w, p.y);
+                mapCtx.stroke();
+                if (window.innerWidth > 768) {
+                    mapCtx.fillText(`${lat}°N`, 5, p.y - 3);
+                }
+            }
+            for (let lon = 30; lon <= 180; lon += 15) {
+                const p = toScreen(RUSSIA_BOUNDS.minLat, lon);
+                mapCtx.beginPath();
+                mapCtx.moveTo(p.x, 0);
+                mapCtx.lineTo(p.x, h);
+                mapCtx.stroke();
+                if (window.innerWidth > 768) {
+                    mapCtx.fillText(`${lon}°E`, p.x + 2, h - 5);
+                }
+            }
+            mapCtx.setLineDash([]);
+
+            // Russia outline
+            mapCtx.beginPath();
+            RUSSIA_OUTLINE.forEach(([lat, lon], i) => {
+                const p = toScreen(lat, lon);
+                if (i === 0) mapCtx.moveTo(p.x, p.y);
+                else mapCtx.lineTo(p.x, p.y);
+            });
+            mapCtx.closePath();
+            mapCtx.fillStyle = 'rgba(40, 70, 110, 0.25)';
+            mapCtx.fill();
+            mapCtx.strokeStyle = 'rgba(80, 130, 180, 0.7)';
+            mapCtx.lineWidth = 1.5;
+            mapCtx.stroke();
+
+            // Roads
+            const drawnRoads = new Set();
+            ROADS.forEach(([c1, c2, dist, quality]) => {
+                if (!CITIES[c1] || !CITIES[c2]) return;
+                const key = [c1, c2].sort().join('|');
+                if (drawnRoads.has(key)) return;
+                drawnRoads.add(key);
+
+                const p1 = toScreen(...CITIES[c1]);
+                const p2 = toScreen(...CITIES[c2]);
+
+                let color;
+                if (quality >= 0.85) color = 'rgba(100, 150, 200, 0.6)';
+                else if (quality >= 0.75) color = 'rgba(150, 130, 100, 0.6)';
+                else color = 'rgba(180, 100, 100, 0.6)';
+
+                mapCtx.strokeStyle = color;
+                mapCtx.lineWidth = 1.5;
+                mapCtx.setLineDash([6, 4]);
+                mapCtx.beginPath();
+                mapCtx.moveTo(p1.x, p1.y);
+                mapCtx.lineTo(p2.x, p2.y);
+                mapCtx.stroke();
+                mapCtx.setLineDash([]);
+            });
+
+            // Delivery routes
+            const allDeliveries = [...deliveries, ...deliveryHistory.slice(-10)];
+            allDeliveries.forEach(d => {
+                const from = CITIES[d.fromCity];
+                const to = CITIES[d.toCity];
+                if (!from || !to) return;
+                const p1 = toScreen(...from);
+                const p2 = toScreen(...to);
+
+                let color, lineWidth = 3;
+                if (d.status === 'IN_TRANSIT') color = '#00ff96';
+                else if (d.status === 'SPOILED') color = '#FF5722';
+                else if (d.status === 'DELIVERED') { color = 'rgba(100, 200, 100, 0.6)'; lineWidth = 2; }
+                else { color = '#ffd93d'; lineWidth = 2; mapCtx.setLineDash([8, 6]); }
+
+                mapCtx.strokeStyle = color;
+                mapCtx.lineWidth = lineWidth;
+                mapCtx.beginPath();
+                mapCtx.moveTo(p1.x, p1.y);
+                mapCtx.lineTo(p2.x, p2.y);
+                mapCtx.stroke();
+                mapCtx.setLineDash([]);
+
+                // Arrow
+                const dx = p2.x - p1.x;
+                const dy = p2.y - p1.y;
+                const length = Math.sqrt(dx*dx + dy*dy);
+                if (length > 0) {
+                    const ndx = dx / length;
+                    const ndy = dy / length;
+                    const midX = (p1.x + p2.x) / 2;
+                    const midY = (p1.y + p2.y) / 2;
+                    const arrowSize = 8;
+
+                    mapCtx.fillStyle = color;
+                    mapCtx.beginPath();
+                    mapCtx.moveTo(midX, midY);
+                    mapCtx.lineTo(midX - ndx*arrowSize - ndy*arrowSize*0.5, midY - ndy*arrowSize + ndx*arrowSize*0.5);
+                    mapCtx.lineTo(midX - ndx*arrowSize + ndy*arrowSize*0.5, midY - ndy*arrowSize - ndx*arrowSize*0.5);
+                    mapCtx.closePath();
+                    mapCtx.fill();
+                }
+            });
+
+            // Cities
+            Object.entries(CITIES).forEach(([city, coords]) => {
+                const p = toScreen(...coords);
+                const wh = Object.values(warehouses).find(w => w.city === city);
+
+                if (wh) {
+                    const utilization = (wh.currentLoad / wh.capacity) * 100;
+                    let color;
+                    if (utilization > 80) color = '#ff6464';
+                    else if (utilization > 50) color = '#ffc832';
+                    else color = '#32c878';
+
+                    const glow = mapCtx.createRadialGradient(p.x, p.y, 0, p.x, p.y, 25);
+                    glow.addColorStop(0, color + 'aa');
+                    glow.addColorStop(1, color + '00');
+                    mapCtx.fillStyle = glow;
+                    mapCtx.beginPath();
+                    mapCtx.arc(p.x, p.y, 25, 0, Math.PI * 2);
+                    mapCtx.fill();
+
+                    const size = 10 + utilization / 20;
+                    mapCtx.fillStyle = color;
+                    mapCtx.strokeStyle = 'rgba(255, 255, 255, 0.7)';
+                    mapCtx.lineWidth = 2;
+                    mapCtx.beginPath();
+                    mapCtx.arc(p.x, p.y, size, 0, Math.PI * 2);
+                    mapCtx.fill();
+                    mapCtx.stroke();
+
+                    if (window.innerWidth > 768) {
+                        mapCtx.fillStyle = 'white';
+                        mapCtx.font = 'bold 11px Arial';
+                        mapCtx.textAlign = 'center';
+                        mapCtx.fillText('🏭', p.x, p.y + 4);
+                        mapCtx.textAlign = 'left';
+                    }
+                } else {
+                    mapCtx.fillStyle = '#b4c8dc';
+                    mapCtx.strokeStyle = '#dce6f5';
+                    mapCtx.lineWidth = 1;
+                    mapCtx.beginPath();
+                    mapCtx.arc(p.x, p.y, 4, 4, 0, Math.PI * 2);
+                    mapCtx.fill();
+                    mapCtx.stroke();
+                }
+
+                mapCtx.fillStyle = '#e6f0ff';
+                mapCtx.font = wh ? 'bold 11px Arial' : '10px Arial';
+                mapCtx.fillText(city, p.x + 14, p.y + 4);
+            });
+
+            // Day indicator
+            const dayBoxX = w - 180;
+            const dayBoxY = 15;
+            mapCtx.fillStyle = 'rgba(20, 40, 70, 0.9)';
+            mapCtx.strokeStyle = '#00d4ff';
+            mapCtx.lineWidth = 2;
+            roundRect(mapCtx, dayBoxX, dayBoxY, 165, 50, 8);
+            mapCtx.fill();
+            mapCtx.stroke();
+
+            mapCtx.fillStyle = '#c8dcf0';
+            mapCtx.font = '11px Arial';
+            mapCtx.fillText('📅 Текущий день:', dayBoxX + 10, dayBoxY + 20);
+
+            mapCtx.fillStyle = '#00d4ff';
+            mapCtx.font = 'bold 20px Arial';
+            mapCtx.fillText(String(currentDay), dayBoxX + 10, dayBoxY + 43);
+        }
+
+        function roundRect(ctx, x, y, width, height, radius) {
+            ctx.beginPath();
+            ctx.moveTo(x + radius, y);
+            ctx.lineTo(x + width - radius, y);
+            ctx.quadraticCurveTo(x + width, y, x + width, y + radius);
+            ctx.lineTo(x + width, y + height - radius);
+            ctx.quadraticCurveTo(x + width, y + height, x + width - radius, y + height);
+            ctx.lineTo(x + radius, y + height);
+            ctx.quadraticCurveTo(x, y + height, x, y + height - radius);
+            ctx.lineTo(x, y + radius);
+            ctx.quadraticCurveTo(x, y, x + radius, y);
+            ctx.closePath();
+        }
+
+        // Timers
+        function startTimers() {
+            setInterval(() => {
+                nextDayCountdown--;
+                if (nextDayCountdown <= 0) {
+                    nextDayCountdown = DAY_INTERVAL_MS / 1000;
+                    advanceDay();
+                }
+                document.getElementById('next-day-timer').textContent = nextDayCountdown;
+            }, 1000);
+
+            setInterval(() => {
+                updateMetrics();
+                drawMap();
+            }, 2000);
+        }
+
+        function advanceDay() {
+            currentDay++;
+            document.getElementById('current-day').textContent = currentDay;
+            log(`📅 Наступил день ${currentDay}`, "day");
+
+            let totalSpoiled = 0;
+            Object.values(warehouses).forEach(wh => {
+                let spoiledQty = 0;
+                let spoiledWeight = 0;
+                const toRemove = [];
+
+                Object.entries(wh.products).forEach(([pid, product]) => {
+                    const age = currentDay - product.productionDay;
+                    if (age >= PRODUCTS[product.type].shelfLife) {
+                        spoiledQty += product.quantity;
+                        spoiledWeight += product.weight;
+                        toRemove.push(pid);
+                    }
+                });
+
+                toRemove.forEach(pid => delete wh.products[pid]);
+                wh.currentLoad -= spoiledWeight;
+                wh.totalSpoiled += spoiledQty;
+                totalSpoiled += spoiledQty;
+
+                if (spoiledQty > 0) {
+                    log(`🗑️ На складе '${wh.name}' испортилось ${spoiledQty} ед.`, "spoiled");
+                }
+            });
+
+            if (totalSpoiled === 0) {
+                log(`✅ Все продукты свежие`, "success");
+            }
+
+            const toRemove = [];
+            deliveries.forEach(d => {
+                if (d.status === 'PLANNED') {
+                    d.status = 'IN_TRANSIT';
+                    d.startedAt = new Date();
+                    d.departureDay = currentDay;
+                    d.daysInTransit = 0;
+                    log(`🚚 Доставка ${d.id}: отправлена`, "info");
+                } else if (d.status === 'IN_TRANSIT') {
+                    d.daysInTransit++;
+
+                    const arrivalDay = d.departureDay + d.estimatedDays;
+                    const productAgeAtArrival = arrivalDay - d.productionDay;
+                    const shelfLife = PRODUCTS[d.productType].shelfLife;
+
+                    if (productAgeAtArrival >= shelfLife) {
+                        d.productSpoiled = true;
+                        d.status = 'SPOILED';
+                        d.completedAt = new Date();
+
+                        const vehicle = vehicles[d.vehicleId];
+                        vehicle.currentLoad -= PRODUCTS[d.productType].weight * d.quantity;
+                        vehicle.isAvailable = true;
+                        vehicle.deliveriesCompleted++;
+
+                        deliveryHistory.push(d);
+                        toRemove.push(d);
+                        log(`🗑️ Доставка ${d.id}: ПРОДУКТ ИСПОРТИЛСЯ!`, "spoiled");
+                        return;
+                    }
+
+                    if (d.daysInTransit >= d.estimatedDays) {
+                        d.status = 'DELIVERED';
+                        d.completedAt = new Date();
+
+                        const vehicle = vehicles[d.vehicleId];
+                        vehicle.currentLoad -= PRODUCTS[d.productType].weight * d.quantity;
+                        vehicle.isAvailable = true;
+                        vehicle.deliveriesCompleted++;
+
+                        const toWh = Object.values(warehouses).find(w => w.name === d.toWarehouse);
+                        if (toWh) {
+                            const productId = `PR-${d.productType}-${Date.now()}-${Math.random()}`;
+                            toWh.products[productId] = {
+                                type: d.productType,
+                                quantity: d.quantity,
+                                weight: PRODUCTS[d.productType].weight * d.quantity,
+                                volume: PRODUCTS[d.productType].volume * d.quantity,
+                                productionDay: d.productionDay
+                            };
+                            toWh.currentLoad += PRODUCTS[d.productType].weight * d.quantity;
+                            toWh.totalReceived += d.quantity;
+                        }
+
+                        deliveryHistory.push(d);
+                        toRemove.push(d);
+                        log(`✅ Доставка ${d.id}: доставлена`, "success");
+                    }
+                }
+            });
+
+            deliveries = deliveries.filter(d => !toRemove.includes(d));
+            updateUI();
+        }
+
+        // Selects
+        function populateSelects() {
+            const fromWh = document.getElementById('from-warehouse');
+            const toWh = document.getElementById('to-warehouse');
+            const whCity = document.getElementById('wh-city');
+            const productType = document.getElementById('product-type');
+            const productsWh = document.getElementById('products-warehouse');
+
+            fromWh.innerHTML = '';
+            toWh.innerHTML = '';
+            whCity.innerHTML = '';
+            productsWh.innerHTML = '';
+
+            Object.values(warehouses).forEach(wh => {
+                const option = `<option value="${wh.id}">${wh.name} (${wh.city})</option>`;
+                fromWh.innerHTML += option;
+                toWh.innerHTML += option;
+                productsWh.innerHTML += option;
+            });
+
+            Object.keys(CITIES).forEach(city => {
+                whCity.innerHTML += `<option value="${city}">${city}</option>`;
+            });
+
+            productType.innerHTML = '';
+            Object.entries(PRODUCTS).forEach(([key, value]) => {
+                productType.innerHTML += `<option value="${key}">${value.name} (${value.shelfLife} дн.)</option>`;
+            });
+
+            updateProductsTable();
+        }
+
+        // Products table
+        function updateProductsTable() {
+            const whId = document.getElementById('products-warehouse').value;
+            const wh = warehouses[whId];
+            const tbody = document.querySelector('#products-table tbody');
+            const summary = document.getElementById('warehouse-summary');
+
+            if (!wh) {
+                tbody.innerHTML = '';
+                summary.textContent = '';
+                return;
+            }
+
+            const grouped = {};
+            Object.values(wh.products).forEach(product => {
+                const ptype = product.type;
+                if (!grouped[ptype]) {
+                    grouped[ptype] = {
+                        name: PRODUCTS[ptype].name,
+                        quantity: 0,
+                        weightPerUnit: PRODUCTS[ptype].weight,
+                        totalWeight: 0,
+                        shelfLife: PRODUCTS[ptype].shelfLife,
+                        minRemaining: Infinity,
+                        productionDay: product.productionDay
+                    };
+                }
+                grouped[ptype].quantity += product.quantity;
+                grouped[ptype].totalWeight += product.weight;
+                const remaining = PRODUCTS[ptype].shelfLife - (currentDay - product.productionDay);
+                if (remaining < grouped[ptype].minRemaining) {
+                    grouped[ptype].minRemaining = remaining;
+                }
+            });
+
+            let totalQty = 0;
+            let totalWeight = 0;
+
+            tbody.innerHTML = Object.values(grouped).map(data => {
+                totalQty += data.quantity;
+                totalWeight += data.totalWeight;
+
+                let remainingColor = 'var(--success)';
+                let remainingText = `${data.minRemaining} дн.`;
+                if (data.minRemaining <= 0) {
+                    remainingColor = 'var(--spoiled)';
+                    remainingText = '🗑️ Испорчено';
+                } else if (data.minRemaining <= 2) {
+                    remainingColor = 'var(--danger)';
+                } else if (data.minRemaining <= 5) {
+                    remainingColor = 'var(--warning)';
+                }
+
+                return `
+                    <tr>
+                        <td><strong>${data.name}</strong></td>
+                        <td style="text-align: center;">${data.quantity}</td>
+                        <td style="text-align: center;">${data.weightPerUnit.toFixed(3)} кг</td>
+                        <td style="text-align: center; font-weight: bold;">${data.totalWeight.toFixed(1)} кг</td>
+                        <td style="text-align: center;">${data.shelfLife} дн.</td>
+                        <td style="text-align: center; color: ${remainingColor}; font-weight: bold;">${remainingText}</td>
+                    </tr>
+                `;
+            }).join('');
+
+            const utilization = (wh.currentLoad / wh.capacity) * 100;
+            summary.textContent = `Всего: ${totalQty} ед. | ${totalWeight.toFixed(1)} кг | Загрузка: ${utilization.toFixed(1)}%`;
+        }
+
+        // Create delivery
+        function createDelivery(e) {
+            e.preventDefault();
+
+            const fromWhId = document.getElementById('from-warehouse').value;
+            const toWhId = document.getElementById('to-warehouse').value;
+            const productType = document.getElementById('product-type').value;
+            const vehicleType = document.getElementById('vehicle-type').value;
+            const quantity = parseInt(document.getElementById('quantity').value);
+
+            if (fromWhId === toWhId) {
+                alert('Выберите разные склады!');
+                return;
+            }
+
+            const fromWh = warehouses[fromWhId];
+            const toWh = warehouses[toWhId];
+
+            let product = null;
+            let productId = null;
+            for (const [pid, p] of Object.entries(fromWh.products)) {
+                if (p.type === productType && p.quantity >= quantity) {
+                    product = p;
+                    productId = pid;
+                    break;
+                }
+            }
+
+            if (!product) {
+                alert(`Товар не найден на складе`);
+                return;
+            }
+
+            const age = currentDay - product.productionDay;
+            const shelfLife = PRODUCTS[productType].shelfLife;
+            const remaining = shelfLife - age;
+
+            if (remaining <= 0) {
+                alert(`⚠️ Товар уже испортился!`);
+                return;
+            }
+
+            let vehicle = null;
+            for (const v of Object.values(vehicles)) {
+                if (v.type === vehicleType && v.isAvailable) {
+                    const weight = PRODUCTS[productType].weight * quantity;
+                    if (v.currentLoad + weight <= v.capacity) {
+                        vehicle = v;
+                        break;
+                    }
+                }
+            }
+
+            if (!vehicle) {
+                alert(`Нет доступного транспорта`);
+                return;
+            }
+
+            const fromCoords = CITIES[fromWh.city];
+            const toCoords = CITIES[toWh.city];
+            const distance = calculateDistance(fromCoords, toCoords);
+            const estimatedTimeHours = distance / vehicle.speed;
+            const estimatedDays = Math.ceil(estimatedTimeHours / 24);
+            const fuel = (distance / 100) * vehicle.fuelConsumption;
+
+            if (estimatedDays > remaining) {
+                alert(`⚠️ Продукт испортится в пути!`);
+                return;
+            }
+
+            fromWh.products[productId].quantity -= quantity;
+            fromWh.currentLoad -= PRODUCTS[productType].weight * quantity;
+            fromWh.totalShipped += quantity;
+
+            vehicle.currentLoad += PRODUCTS[productType].weight * quantity;
+            vehicle.isAvailable = false;
+            vehicle.totalDistance += distance;
+            vehicle.totalFuel += fuel;
+
+            const delivery = {
+                id: `DL-${String(++idCounter).padStart(4, '0')}`,
+                fromCity: fromWh.city,
+                toCity: toWh.city,
+                fromWarehouse: fromWh.name,
+                toWarehouse: toWh.name,
+                productType,
+                quantity,
+                vehicleId: vehicle.id,
+                distance,
+                estimatedTimeHours,
+                estimatedDays,
+                fuelCost: fuel * 50,
+                status: 'PLANNED',
+                createdAt: new Date(),
+                productionDay: product.productionDay,
+                daysInTransit: 0,
+                productSpoiled: false,
+                departureDay: 0
+            };
+
+            deliveries.push(delivery);
+            log(`✅ Доставка создана: ${fromWh.city} → ${toWh.city}`, "success");
+            
+            document.getElementById('delivery-form').reset();
+            updateUI();
+        }
+
+        function calculateDistance(coord1, coord2) {
+            const R = 6371;
+            const dLat = (coord2[0] - coord1[0]) * Math.PI / 180;
+            const dLon = (coord2[1] - coord1[1]) * Math.PI / 180;
+            const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+                      Math.cos(coord1[0] * Math.PI / 180) * Math.cos(coord2[0] * Math.PI / 180) *
+                      Math.sin(dLon/2) * Math.sin(dLon/2);
+            const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+            return R * c;
+        }
+
+        function simulateAll() {
+            let totalDaysPassed = 0;
+            while (deliveries.length > 0 && totalDaysPassed < 100) {
+                currentDay++;
+                document.getElementById('current-day').textContent = currentDay;
+                
+                Object.values(warehouses).forEach(wh => {
+                    let spoiledQty = 0;
+                    let spoiledWeight = 0;
+                    const toRemove = [];
+
+                    Object.entries(wh.products).forEach(([pid, product]) => {
+                        const age = currentDay - product.productionDay;
+                        if (age >= PRODUCTS[product.type].shelfLife) {
+                            spoiledQty += product.quantity;
+                            spoiledWeight += product.weight;
+                            toRemove.push(pid);
+                        }
+                    });
+
+                    toRemove.forEach(pid => delete wh.products[pid]);
+                    wh.currentLoad -= spoiledWeight;
+                    wh.totalSpoiled += spoiledQty;
+                });
+
+                const toRemoveDel = [];
+                deliveries.forEach(d => {
+                    if (d.status === 'PLANNED') {
+                        d.status = 'IN_TRANSIT';
+                        d.departureDay = currentDay;
+                        d.daysInTransit = 0;
+                    } else if (d.status === 'IN_TRANSIT') {
+                        d.daysInTransit++;
+                        const arrivalDay = d.departureDay + d.estimatedDays;
+                        const productAgeAtArrival = arrivalDay - d.productionDay;
+                        const shelfLife = PRODUCTS[d.productType].shelfLife;
+
+                        if (productAgeAtArrival >= shelfLife) {
+                            d.productSpoiled = true;
+                            d.status = 'SPOILED';
+                            d.completedAt = new Date();
+                            const vehicle = vehicles[d.vehicleId];
+                            vehicle.currentLoad -= PRODUCTS[d.productType].weight * d.quantity;
+                            vehicle.isAvailable = true;
+                            vehicle.deliveriesCompleted++;
+                            deliveryHistory.push(d);
+                            toRemoveDel.push(d);
+                            return;
+                        }
+
+                        if (d.daysInTransit >= d.estimatedDays) {
+                            d.status = 'DELIVERED';
+                            d.completedAt = new Date();
+                            const vehicle = vehicles[d.vehicleId];
+                            vehicle.currentLoad -= PRODUCTS[d.productType].weight * d.quantity;
+                            vehicle.isAvailable = true;
+                            vehicle.deliveriesCompleted++;
+
+                            const toWh = Object.values(warehouses).find(w => w.name === d.toWarehouse);
+                            if (toWh) {
+                                const productId = `PR-${d.productType}-${Date.now()}-${Math.random()}`;
+                                toWh.products[productId] = {
+                                    type: d.productType,
+                                    quantity: d.quantity,
+                                    weight: PRODUCTS[d.productType].weight * d.quantity,
+                                    volume: PRODUCTS[d.productType].volume * d.quantity,
+                                    productionDay: d.productionDay
+                                };
+                                toWh.currentLoad += PRODUCTS[d.productType].weight * d.quantity;
+                                toWh.totalReceived += d.quantity;
+                            }
+                            deliveryHistory.push(d);
+                            toRemoveDel.push(d);
+                        }
+                    }
+                });
+
+                deliveries = deliveries.filter(d => !toRemoveDel.includes(d));
+                totalDaysPassed++;
+            }
+
+            nextDayCountdown = DAY_INTERVAL_MS / 1000;
+            log(`⏩ Прокручено дней: ${totalDaysPassed}`, "success");
+            updateUI();
+        }
+
+        function addWarehouse(e) {
+            e.preventDefault();
+            
+            const name = document.getElementById('wh-name').value;
+            const city = document.getElementById('wh-city').value;
+            const capacity = parseInt(document.getElementById('wh-capacity').value);
+            const tempMin = parseFloat(document.getElementById('wh-temp-min').value);
+            const tempMax = parseFloat(document.getElementById('wh-temp-max').value);
+            
+            const id = `WH-${String(Object.keys(warehouses).length + 1).padStart(4, '0')}`;
+            warehouses[id] = {
+                id, name, city, capacity, tempMin, tempMax,
+                currentLoad: 0, products: {}, totalReceived: 0, totalShipped: 0, totalSpoiled: 0
+            };
+            
+            log(`🏭 Добавлен склад: ${name}`, "success");
+            document.getElementById('warehouse-form').reset();
+            populateSelects();
+            updateUI();
+        }
+
+        function addVehicle(e) {
+            e.preventDefault();
+            
+            const type = document.getElementById('veh-type').value;
+            const id = `VH-${String(Object.keys(vehicles).length + 1).padStart(4, '0')}`;
+            
+            vehicles[id] = {
+                id, type, ...VEHICLES[type],
+                currentLoad: 0, isAvailable: true,
+                totalDistance: 0, totalFuel: 0, deliveriesCompleted: 0
+            };
+            
+            log(`🚛 Добавлен транспорт`, "success");
+            updateUI();
+        }
+
+        // Analytics
+        function analyzeWarehouses() {
+            const tbody = document.querySelector('#analysis-table tbody');
+            tbody.innerHTML = '';
+            
+            Object.keys(CITIES).forEach(city => {
+                const hasWarehouse = Object.values(warehouses).some(w => w.city === city);
+                
+                let minDist = Infinity;
+                let nearestWh = '';
+                
+                Object.values(warehouses).forEach(wh => {
+                    const from = CITIES[city];
+                    const to = CITIES[wh.city];
+                    if (from && to) {
+                        const dist = calculateDistance(from, to);
+                        if (dist < minDist) {
+                            minDist = dist;
+                            nearestWh = wh.name;
+                        }
+                    }
+                });
+                
+                let recommendation, recClass;
+                if (hasWarehouse) {
+                    recommendation = '✅ Есть склад';
+                    recClass = 'badge-success';
+                } else if (minDist < 500) {
+                    recommendation = `⚠️ Ближайший в ${minDist.toFixed(0)} км`;
+                    recClass = 'badge-warning';
+                } else {
+                    recommendation = `❌ Рекомендуется склад`;
+                    recClass = 'badge-danger';
+                }
+                
+                tbody.innerHTML += `
+                    <tr>
+                        <td>${city}</td>
+                        <td>${hasWarehouse ? '✅ Да' : '❌ Нет'}</td>
+                        <td>${nearestWh}</td>
+                        <td>${minDist === Infinity ? 0 : minDist.toFixed(0)}</td>
+                        <td><span class="badge ${recClass}">${recommendation}</span></td>
+                    </tr>
+                `;
+            });
+            
+            log('📊 Анализ выполнен', "success");
+        }
+
+        function analyzeRouteEfficiency() {
+            if (deliveryHistory.length === 0) {
+                alert('Сначала выполните доставку');
+                return;
+            }
+
+            const recentDeliveries = deliveryHistory.slice(-20);
+            efficiencyResults = [];
+
+            recentDeliveries.forEach(delivery => {
+                const analysis = {
+                    delivery_id: delivery.id,
+                    route: `${delivery.fromCity} → ${delivery.toCity}`,
+                    product: PRODUCTS[delivery.productType].name,
+                    vehicle_type: VEHICLES[vehicles[delivery.vehicleId].type].name,
+                    distance: delivery.distance,
+                    efficiency_score: 0,
+                    problems: [],
+                    recommendations: [],
+                    suggested_new_warehouse: null,
+                    suggested_vehicle: null,
+                    potential_savings: 0,
+                    vehicle: vehicles[delivery.vehicleId],
+                    delivery: delivery,
+                    product_spoiled: delivery.productSpoiled,
+                    days_in_transit: delivery.daysInTransit,
+                    shelf_life: PRODUCTS[delivery.productType].shelfLife,
+                };
+
+                if (delivery.productSpoiled) {
+                    analysis.efficiency_score = 0;
+                    analysis.problems.push(`🗑️ Продукт ИСПОРТИЛСЯ!`);
+                    analysis.verdict = "❌ КРИТИЧЕСКИ НЕЭФФЕКТИВЕН";
+                    analysis.recommendations.push(`🏭 Разместить промежуточный склад`);
+                    analysis.recommendations.push(`🚀 Использовать более быстрый транспорт`);
+                    efficiencyResults.push(analysis);
+                    return;
+                }
+
+                let score = 100;
+                const weight = PRODUCTS[delivery.productType].weight * delivery.quantity;
+                const loadPct = (weight / analysis.vehicle.capacity) * 100;
+                
+                if (loadPct < 40) {
+                    score -= 25;
+                    analysis.problems.push(`📉 Низкая загрузка (${loadPct.toFixed(0)}%)`);
+                } else if (loadPct < 60) {
+                    score -= 10;
+                }
+
+                if (delivery.distance > 1000) {
+                    score -= 20;
+                    analysis.problems.push(`📏 Очень длинный маршрут`);
+                } else if (delivery.distance > 600) {
+                    score -= 10;
+                }
+
+                analysis.efficiency_score = Math.max(0, score);
+
+                if (score >= 80) analysis.verdict = "✅ Эффективен";
+                else if (score >= 60) analysis.verdict = "⚠️ Требует оптимизации";
+                else analysis.verdict = "❌ Неэффективен";
+
+                efficiencyResults.push(analysis);
+            });
+
+            efficiencyResults.sort((a, b) => a.efficiency_score - b.efficiency_score);
+            updateEfficiencyTable();
+            log(`🎯 Анализ выполнен: ${efficiencyResults.length} маршрутов`, "success");
+        }
+
+        function updateEfficiencyTable() {
+            const tbody = document.querySelector('#efficiency-table tbody');
+            tbody.innerHTML = '';
+
+            let totalSavings = 0;
+            let criticalCount = 0;
+            let spoiledCount = 0;
+
+            efficiencyResults.forEach((r, idx) => {
+                const score = r.efficiency_score;
+                let scoreClass = 'score-high';
+                if (r.product_spoiled) {
+                    scoreClass = 'score-spoiled';
+                    criticalCount++;
+                    spoiledCount++;
+                } else if (score < 60) {
+                    scoreClass = 'score-low';
+                    criticalCount++;
+                } else if (score < 80) {
+                    scoreClass = 'score-medium';
+                }
+
+                const problemsText = r.problems.length > 0 ? r.problems.slice(0, 2).join('<br>') : '—';
+                const shelfInfo = `${r.shelf_life} дн. (в пути: ${r.days_in_transit} дн.)`;
+
+                tbody.innerHTML += `
+                    <tr onclick="showRecommendations(${idx})" style="cursor: pointer;">
+                        <td>${r.delivery_id}</td>
+                        <td>${r.route}</td>
+                        <td>${r.product} / ${r.vehicle_type}</td>
+                        <td>${r.distance.toFixed(0)} км</td>
+                        <td><span class="score-badge ${scoreClass}">${score.toFixed(0)}/100</span></td>
+                        <td style="font-size: 0.8rem;">${problemsText}</td>
+                        <td style="color: ${r.product_spoiled ? 'var(--spoiled)' : 'inherit'};">${shelfInfo}${r.product_spoiled ? ' 🗑️' : ''}</td>
+                        <td style="color: ${r.product_spoiled ? 'var(--spoiled)' : score >= 80 ? 'var(--success)' : score >= 60 ? 'var(--warning)' : 'var(--danger)'};">${r.verdict}</td>
+                    </tr>
+                `;
+
+                totalSavings += r.potential_savings;
+            });
+
+            const avgScore = efficiencyResults.reduce((sum, r) => sum + r.efficiency_score, 0) / efficiencyResults.length;
+
+            document.getElementById('summary-analyzed').textContent = efficiencyResults.length;
+            document.getElementById('summary-avg').textContent = `${avgScore.toFixed(0)}/100`;
+            document.getElementById('summary-critical').textContent = criticalCount;
+            document.getElementById('summary-spoiled').textContent = spoiledCount;
+            document.getElementById('summary-savings').textContent = `${totalSavings.toFixed(0)} ₽`;
+            document.getElementById('eff-summary').style.display = 'flex';
+        }
+
+        function showRecommendations(idx) {
+            const r = efficiencyResults[idx];
+            const panel = document.getElementById('recommendation-panel');
+            const content = document.getElementById('recommendation-content');
+
+            let html = `
+                <div style="margin-bottom: 1rem;">
+                    <strong>Маршрут:</strong> ${r.route}<br>
+                    <strong>Товар:</strong> ${r.product} | <strong>Транспорт:</strong> ${r.vehicle_type}<br>
+                    <strong>Эффективность:</strong> <span class="score-badge ${r.product_spoiled ? 'score-spoiled' : r.efficiency_score >= 80 ? 'score-high' : r.efficiency_score >= 60 ? 'score-medium' : 'score-low'}">
+                        ${r.efficiency_score.toFixed(0)}/100
+                    </span>
+                </div>
+            `;
+
+            if (r.product_spoiled) {
+                html += `
+                    <div class="recommendation-card spoiled">
+                        <h5>🗑️ Продукт испортился!</h5>
+                        <p>Рекомендации:</p>
+                        <ul style="margin-top: 0.5rem;">
+                            <li>Разместить промежуточный склад</li>
+                            <li>Использовать более быстрый транспорт</li>
+                        </ul>
+                    </div>
+                `;
+            }
+
+            if (r.problems.length > 0) {
+                html += `<h5 style="color: var(--danger); margin-bottom: 0.5rem;">⚠️ Проблемы:</h5>`;
+                html += `<ul class="problem-list">`;
+                r.problems.forEach(p => { html += `<li>${p}</li>`; });
+                html += `</ul>`;
+            }
+
+            if (r.recommendations.length > 0) {
+                html += `<h5 style="color: var(--accent); margin: 1rem 0 0.5rem;">💡 Рекомендации:</h5>`;
+                html += `<ul style="list-style: none; padding: 0;">`;
+                r.recommendations.forEach(rec => { html += `<li style="padding: 0.2rem 0;">${rec}</li>`; });
+                html += `</ul>`;
+            }
+
+            content.innerHTML = html;
+            panel.style.display = 'block';
+
+            document.querySelectorAll('#efficiency-table tbody tr').forEach(tr => tr.classList.remove('selected'));
+            document.querySelectorAll('#efficiency-table tbody tr')[idx].classList.add('selected');
+        }
+
+        // Update UI
+        function updateMetrics() {
+            const totalDeliveries = deliveryHistory.length;
+            const activeDeliveries = deliveries.length;
+            const totalFuelCost = deliveryHistory.reduce((sum, d) => sum + d.fuelCost, 0);
+            const totalDistance = deliveryHistory.reduce((sum, d) => sum + d.distance, 0);
+            
+            const availableVehicles = Object.values(vehicles).filter(v => v.isAvailable).length;
+            const totalCargo = Object.values(warehouses).reduce((sum, w) => sum + w.currentLoad, 0);
+            
+            const onTime = deliveryHistory.filter(d => d.status === 'DELIVERED').length;
+            const onTimeRate = totalDeliveries > 0 ? (onTime / totalDeliveries * 100) : 0;
+            
+            const spoiled = deliveryHistory.filter(d => d.status === 'SPOILED').length;
+            
+            const metrics = [
+                { icon: '📅', value: currentDay, label: 'День', color: '#00BCD4' },
+                { icon: '📦', value: totalDeliveries, label: 'Доставок', color: '#4CAF50' },
+                { icon: '🚚', value: activeDeliveries, label: 'Активных', color: '#2196F3' },
+                { icon: '⛽', value: `${totalFuelCost.toFixed(0)} ₽`, label: 'Топливо', color: '#FF9800' },
+                { icon: '🛣️', value: `${totalDistance.toFixed(0)} км`, label: 'Пробег', color: '#9C27B0' },
+                { icon: '🚛', value: availableVehicles, label: 'Транспорт', color: '#607D8B' },
+                { icon: '⏰', value: `${onTimeRate.toFixed(1)}%`, label: 'Сроки', color: '#E91E63' },
+                { icon: '🗑️', value: spoiled, label: 'Испорчено', color: '#FF5722' },
+                { icon: '🏭', value: `${totalCargo.toFixed(0)} кг`, label: 'Груз', color: '#795548' },
+            ];
+            
+            const grid = document.getElementById('metrics-grid');
+            grid.innerHTML = metrics.map(m => `
+                <div class="metric-card">
+                    <div class="metric-icon">${m.icon}</div>
+                    <div class="metric-value" style="color: ${m.color}">${m.value}</div>
+                    <div class="metric-label">${m.label}</div>
+                </div>
+            `).join('');
+        }
+
+        function updateTables() {
+            const whTbody = document.querySelector('#warehouses-table tbody');
+            whTbody.innerHTML = Object.values(warehouses).map(wh => {
+                const utilization = (wh.currentLoad / wh.capacity) * 100;
+                const productCount = Object.values(wh.products).reduce((sum, p) => sum + p.quantity, 0);
+                let loadColor = '#6bff6b';
+                if (utilization > 80) loadColor = '#ff6b6b';
+                else if (utilization > 50) loadColor = '#ffd93d';
+                
+                return `
+                    <tr>
+                        <td>${wh.id}</td>
+                        <td>${wh.name}</td>
+                        <td>${wh.city}</td>
+                        <td style="color: ${loadColor}">${utilization.toFixed(1)}%</td>
+                        <td>${productCount}</td>
+                        <td style="color: ${wh.totalSpoiled > 0 ? 'var(--spoiled)' : 'inherit'}; font-weight: ${wh.totalSpoiled > 0 ? 'bold' : 'normal'};">${wh.totalSpoiled}</td>
+                    </tr>
+                `;
+            }).join('');
+            
+            const vehTbody = document.querySelector('#vehicles-table tbody');
+            vehTbody.innerHTML = Object.values(vehicles).map(v => {
+                const loadPercent = (v.currentLoad / v.capacity) * 100;
+                const status = v.isAvailable ? 
+                    '<span class="badge badge-success">✅ Доступен</span>' : 
+                    '<span class="badge badge-danger">🚫 Занят</span>';
+                
+                return `
+                    <tr>
+                        <td>${v.id}</td>
+                        <td>${VEHICLES[v.type].name}</td>
+                        <td>${v.capacity} кг</td>
+                        <td>${loadPercent.toFixed(1)}%</td>
+                        <td>${status}</td>
+                    </tr>
+                `;
+            }).join('');
+            
+            const activeTbody = document.querySelector('#active-deliveries-table tbody');
+            activeTbody.innerHTML = deliveries.map(d => {
+                let statusBadge;
+                if (d.status === 'IN_TRANSIT') statusBadge = '<span class="badge badge-info">В пути</span>';
+                else if (d.status === 'PLANNED') statusBadge = '<span class="badge badge-warning">Запланирована</span>';
+                else if (d.status === 'SPOILED') statusBadge = '<span class="badge badge-spoiled">🗑️ Испорчено</span>';
+                else statusBadge = '<span class="badge badge-success">Доставлена</span>';
+                
+                const age = currentDay - d.productionDay;
+                const shelfLife = PRODUCTS[d.productType].shelfLife;
+                const remaining = shelfLife - age;
+                const arrivalAge = age + d.estimatedDays;
+                const remainingAtArrival = shelfLife - arrivalAge;
+                
+                let shelfColor = remainingAtArrival > 3 ? 'var(--success)' : remainingAtArrival > 0 ? 'var(--warning)' : 'var(--spoiled)';
+                
+                return `
+                    <tr>
+                        <td>${d.id}</td>
+                        <td>${d.fromCity} → ${d.toCity}</td>
+                        <td>${PRODUCTS[d.productType].name}</td>
+                        <td>${d.quantity}</td>
+                        <td>${VEHICLES[vehicles[d.vehicleId].type].name}</td>
+                        <td>${d.distance.toFixed(0)} км</td>
+                        <td>${d.daysInTransit} / ~${d.estimatedDays} дн.</td>
+                        <td style="color: ${shelfColor}; font-weight: bold;">${shelfLife} дн. (ост: ${remainingAtArrival})</td>
+                        <td>День ${d.departureDay}</td>
+                        <td>${statusBadge}</td>
+                    </tr>
+                `;
+            }).join('');
+            
+            const historyTbody = document.querySelector('#history-deliveries-table tbody');
+            historyTbody.innerHTML = deliveryHistory.slice(-50).map(d => {
+                let statusBadge;
+                if (d.status === 'DELIVERED') statusBadge = '<span class="badge badge-success">✅ Доставлена</span>';
+                else if (d.status === 'SPOILED') statusBadge = '<span class="badge badge-spoiled">🗑️ Испорчено</span>';
+                else statusBadge = `<span class="badge badge-warning">${d.status}</span>`;
+                
+                return `
+                    <tr>
+                        <td>${d.id}</td>
+                        <td>${d.fromCity} → ${d.toCity}</td>
+                        <td>${PRODUCTS[d.productType].name}</td>
+                        <td>${d.quantity}</td>
+                        <td>${d.distance.toFixed(0)} км</td>
+                        <td>${d.fuelCost.toFixed(0)} ₽</td>
+                        <td>${d.daysInTransit} дн.</td>
+                        <td>День ${d.departureDay}</td>
+                        <td>${PRODUCTS[d.productType].shelfLife} дн.</td>
+                        <td>${statusBadge}</td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        function updateUI() {
+            document.getElementById('current-day').textContent = currentDay;
+            updateMetrics();
+            updateTables();
+            updateProductsTable();
+            drawMap();
+        }
+
+        function log(message, type = 'info') {
+            const console = document.getElementById('log-console');
+            const time = new Date().toLocaleTimeString('ru-RU');
+            const className = `log-${type}`;
+            console.innerHTML += `<div class="log-entry"><span class="log-time">[День ${currentDay} | ${time}]</span> <span class="${className}">${message}</span></div>`;
+            console.scrollTop = console.scrollHeight;
+        }
+
+        function switchTab(tabName) {
+            document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+            
+            event.target.classList.add('active');
+            document.getElementById(`${tabName}-tab`).classList.add('active');
+            
+            if (tabName === 'map') {
+                setTimeout(() => {
+                    resizeCanvas();
+                    drawMap();
+                }, 100);
+            }
+        }
+
+        function refreshAll() {
+            updateUI();
+            log('🔄 Обновлено', "success");
+        }
+    </script>
+</body>
+</html>
